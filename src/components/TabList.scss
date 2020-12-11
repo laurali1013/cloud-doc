@@ -1,0 +1,33 @@
+// 显示x关闭图标
+.tablist-component{
+    
+    .close-icon{
+        visibility: hidden;  
+    }
+    .nav-link:hover .close-icon{
+        visibility: visible;
+    }
+    .nav-link.active .close-icon{
+        visibility: visible;
+    }
+
+    //修改markdown后，回显示红色圆圈
+    .unsaved-icon{
+        display: inline-block;
+        background-color: #d9534f;
+        width: 11px;
+        height: 11px;
+    }
+    //红点有，把关闭隐藏
+    .withUnsaved.nav-link .close-icon {
+        display: none;
+    }
+    //hover移动到navitem中的a标签后，关闭x显示
+    .withUnsaved.nav-link:hover  .close-icon{
+        display: inline-block;
+    }
+    //hover移动到navitem中的a标签后，红点显示
+    .withUnsaved.nav-link:hover  .unsaved-icon{
+        display: none;
+    }
+}

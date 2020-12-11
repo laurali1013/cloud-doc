@@ -6,3 +6,23 @@
 .c-link{
   cursor: pointer;
 }
+.start-page{
+  font-size: 30px;
+  text-align: center;
+  height: 300px;
+  line-height: 300px;
+  color: #ccc;
+}
+.left-panel{
+  position: relative;
+  min-height: 100vh;
+}
+.button-group{
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+}
+
+.no-border{
+  border-radius: 0 !important;
+}
