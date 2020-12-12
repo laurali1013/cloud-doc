@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
-import {v4} from "uuid";
+import { v4 } from "uuid";
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
-
-import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+import "./App.css";
+
 import defaultFiles from "./utils/defaultFiles";
+import { flattenArr, objToArr } from "./utils/helper";
 
 import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
@@ -15,19 +16,22 @@ import BottomBtn from "./components/BottomBtn";
 import TabList from "./components/TabList";
 
 function App() {
-  const [files, setFiles] = useState(defaultFiles); //文件列表
+  const [files, setFiles] = useState(flattenArr(defaultFiles)); //文件列表
+  console.log(files);
   const [activeFileId, setActiveFileId] = useState(""); //当前被激活的文件id
   const [openedFileIds, setOpenedFileIds] = useState([]); //被打开的文件id数组
   const [unsavedFileIds, setUnsavedFileIds] = useState([]); //未保存的文件id数组
   const [searchFiles, setSearchFiles] = useState([]); //搜索关键字的文件数组
-  //通过id找到open的文件
-  const openedFiles = openedFileIds.map((openId) => {
-    return files.find((file) => file.id === openId);
-  });
+  const filesArr = objToArr(files);
+
   //通过activeFileId找到文件
-  const activeFile = files.find((file) => file.id === activeFileId);
+  const activeFile = files[activeFileId];
 
   //事件：反向数据流
+  //已经打开的文档列表
+  const openedFiles = openedFileIds.map((openId) => {
+    return files[openId];
+  });
 
   //fileClick:参数fileId
   const fileClick = (fileId) => {
@@ -62,14 +66,10 @@ function App() {
 
   //修改当前文档的内容
   const fileChange = (fileId, value) => {
-    //更新文档的body
-    const newFiles = files.map((file) => {
-      if (file.id === fileId) {
-        file.body = value;
-      }
-      return file;
-    });
-    setFiles(newFiles);
+    //创建一个新的文档对象
+    const newFile = { ...files[fileId], body: value };
+    //将新的文档对象保存到文档files对象中
+    setFiles({ ...files, [fileId]: newFile });
     //将id添加到unsavedFileIds（没有才添加，有就不添加了）
     if (!unsavedFileIds.includes(fileId)) {
       setUnsavedFileIds([...unsavedFileIds, fileId]);
@@ -78,54 +78,45 @@ function App() {
 
   //删除markdown文档
   const fileDelete = (fileId) => {
-    //获取出了fileId之外的文件
-    const newFiles = files.filter((file) => file.id !== fileId);
+    //删除fileId的文档对象
+    delete files[fileId];
     //重新设置files
-    setFiles(newFiles);
+    setFiles(files);
     //要把openedfileId也删除掉
     TabClose(fileId);
   };
 
   //更新文档名（重命名）
-  const updateFileName = (fileId, value) => {
-    //map复制一个新files，找到fileId的file，修改其title = value
-    const newFiles = files.map((file) => {
-      if (file.id === fileId) {
-        file.title = value;
-        file.isNew = false;
-      }
-      return file;
-    });
-    //重新设置files
-    setFiles(newFiles);
+  const updateFileName = (fileId, title) => {
+    //创建一个修改的新文档对象
+    const modifyFile = { ...files[fileId], title, isNew: false };
+    //追加到files文档对象中
+    setFiles({ ...files, [fileId]: modifyFile });
   };
 
   //查找关键字title的文件
   const fileSearch = (keyword) => {
     //filter：过滤出title中有keyword关键字的新files数组（includes方法）
-    const newFiles = files.filter((file) => file.title.includes(keyword));
+    const newFiles = filesArr.filter((file) => file.title.includes(keyword));
     //更新files（要新加一个状态保存查找的文件）
     setSearchFiles(newFiles);
     //如果找到keyword那么显示搜索到的文件，如果没有找到显示files
   };
-  const fileListArray = searchFiles.length > 0 ? searchFiles : files;
+  const fileListArray = searchFiles.length > 0 ? searchFiles : filesArr;
 
   //新建
   const createNewFile = () => {
-    //新建一个file，追加到files中，uuid生成唯一ID
+    //新建一个file
     const newId = v4();
-    const newFiles = [
-      ...files,
-      {
-        id: newId,
-        title: "",
-        body: "##hello",
-        createAt: new Date().getTime(),
-        isNew :true,//用来判断是不是新增加
-
-      },
-    ];
-    setFiles(newFiles);
+    const newFile = {
+      id: newId,
+      title: "",
+      body: "##hello",
+      createAt: new Date().getTime(),
+      isNew: true, //用来判断是不是新增加
+    };
+    //追加到到文档对象中
+    setFiles({ ...files, [newId]: newFile });
   };
 
   return (
